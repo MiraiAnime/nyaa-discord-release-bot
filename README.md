@@ -1,2 +1,15 @@
 # nyaa-discord-release-bot
-best name for product in history
+
+___
+
+written in python
+
+---
+
+control the bot with the `.` option.
+
+something like `. help` will get yourself a list of options
+
+---
+
+kept as basic as possible, bc
