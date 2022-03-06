@@ -88,11 +88,11 @@ async def on_message(message):
 async def checking():
     if notif_channel == 0:
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                            name="for .set_channel command."))
+                                                            name=".set_channel command."))
         return
     else:
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching,
-                                                            name="this fucking mess."))
+                                                            name="VTUBERS DIE IN PAIN."))
         channel = notif_channel
     timeout = 0
     connection = False
