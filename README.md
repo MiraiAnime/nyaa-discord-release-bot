@@ -25,6 +25,6 @@ and `.requirements` will include added search patterns on each line, like so:
 BDMV
 Moozzi2
 ```
-while you can write these settings to the file yourself, I would much rather just configure them using the bot commands (`.help`)
+while you can write these requirements to the file yourself, I would much rather just configure them using the bot commands (`.help`)
 
 ---
