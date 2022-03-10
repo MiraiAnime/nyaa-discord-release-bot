@@ -20,16 +20,11 @@ bot reads token from `.env` file looking like this:
 DISCORD_TOKEN=<put your token here>
 ```
 
-later on the bot will add your settings to the .env file, f.e.
-```
-DISCORD_TOKEN=<put your token here>
-```
-
 and `.requirements` will include added search patterns on each line, like so:
 ```
 BDMV
 Moozzi2
 ```
-while you can write these settings to the file yourself, I would much rather just configure them using the bot commands (`.help`)
+while you can write these requirements to the file yourself, I would much rather just configure them using the bot commands (`.help`)
 
 ---
