@@ -6,11 +6,13 @@ written in python
 
 ---
 
-control the bot with the `.` option.
+`.help` will get yourself a list of options
 
-something like `.help` will get yourself a list of options
+dont forget to activate your notification channel with `.activate_channel`
 
-dont forget to set the notification channel with `.set_channel`, on every restart
+since I have no hobbies, the bot now supports multiple different channels at the same time
+
+be aware the `.now` command can make nyaa go cry, just dont please
 
 ---
 
@@ -20,11 +22,17 @@ bot reads token from `.env` file looking like this:
 DISCORD_TOKEN=<put your token here>
 ```
 
-and `.requirements` will include added search patterns on each line, like so:
+after activating your channel the bot will create a file and add search patterns to it
+
+these will be removed after deactivating the channel
+
+regex should be supported but limited due to the environment, but could look as easy as this
+
 ```
 BDMV
 Moozzi2
 ```
-while you can write these requirements to the file yourself, I would much rather just configure them using the bot commands (`.help`)
+
+while you can write these settings to the file yourself, I would much rather just configure them using the bot commands (`.help`)
 
 ---
