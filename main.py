@@ -31,7 +31,7 @@ async def on_ready():
 async def on_message(message):
     channel = message.channel
     channel_id = message.message.channel.id
-    if not os.path.isfile("channel_{}".format(channel_id)):
+    if not os.path.isfile("watch_{}".format(channel_id)):
         await message.send("Action failed. Please run `.activate_channel` to set your notification channel.")
         return
     await channel.send("Please enter what you want to monitor:")
@@ -40,7 +40,7 @@ async def on_message(message):
         return msg.author == message.author and msg.channel == message.channel
 
     msg = await bot.wait_for("message", check=check)
-    with open("channel_{}".format(channel_id), "a+") as search:
+    with open("watch_{}".format(channel_id), "a+") as search:
         if msg.content.lower() in search.read():
             await message.send("This search request is already being indexed. Check out \".list\"")
             return
@@ -50,15 +50,16 @@ async def on_message(message):
         elif "\n" in msg.content.lower():
             await message.send("Your message mustn't persist of more than one line!")
             return
-        search.write("{}\n".format(msg.content.lower()))
-    await message.send("\"{}\" has been added.".format(msg.content.lower()))
+        user_input = (msg.content.lower()).replace("`", "")
+        search.write("{}\n".format(user_input))
+    await message.send("`{}` has been added to the watchlist.".format(user_input))
 
 
 @bot.command(name="remove", help="Remove search requirement")
 async def on_message(message):
     channel = message.channel
     channel_id = message.message.channel.id
-    if not os.path.isfile("channel_{}".format(channel_id)):
+    if not os.path.isfile("watch_{}".format(channel_id)):
         await message.send("Action failed. Please run `.activate_channel` to set your notification channel.")
         return
     await channel.send("Please enter what you no longer want to monitor:")
@@ -67,7 +68,7 @@ async def on_message(message):
         return msg.author == message.author and msg.channel == message.channel
 
     msg = await bot.wait_for("message", check=check)
-    with open("channel_{}".format(channel_id), "r") as remove_file:
+    with open("watch_{}".format(channel_id), "r") as remove_file:
         lines = remove_file.readlines()
     if msg.content.lower() not in str(lines):
         await message.send("This search request was not being indexed. Check out `.list`")
@@ -85,7 +86,7 @@ async def on_message(message):
             line = line + i
         else:
             remove = True
-    with open("channel_{}".format(channel_id), "w+") as remove_file_write:
+    with open("watch_{}".format(channel_id), "w+") as remove_file_write:
         remove_file_write.write(line)
         if remove:
             await message.send("\"{}\" has been successfully removed.".format(msg.content.lower()))
@@ -94,18 +95,99 @@ async def on_message(message):
                 "Action failed. Your input was not being indexed to begin with.")
 
 
+@bot.command(name="add_blacklist", help="Add something to the blacklist")
+async def on_message(message):
+    channel = message.channel
+    channel_id = message.message.channel.id
+    if not os.path.isfile("blacklist_{}".format(channel_id)):
+        await message.send("Action failed. Please run `.activate_channel` to set your notification channel.")
+        return
+    await channel.send("Please enter what you want to blacklist:")
+
+    def check(msg):
+        return msg.author == message.author and msg.channel == message.channel
+
+    msg = await bot.wait_for("message", check=check)
+    with open("blacklist_{}".format(channel_id), "a+") as search:
+        if msg.content.lower() in search.read():
+            await message.send("This is already in your blacklist. Check out \".black_list\"")
+            return
+        elif "\"" in msg.content.lower():
+            await message.send("Make sure not to include this character:\"")
+            return
+        elif "\n" in msg.content.lower():
+            await message.send("Your message mustn't persist of more than one line!")
+            return
+        search.write("{}\n".format(msg.content.lower()))
+    await message.send("\"{}\" has been added to your blacklist.".format(msg.content.lower()))
+
+
+@bot.command(name="remove_blacklist", help="Remove blacklist item")
+async def on_message(message):
+    channel = message.channel
+    channel_id = message.message.channel.id
+    if not os.path.isfile("blacklist_{}".format(channel_id)):
+        await message.send("Action failed. Please run `.activate_channel` to set your notification channel.")
+        return
+    await channel.send("Please enter what you no longer want to ignore:")
+
+    def check(msg):
+        return msg.author == message.author and msg.channel == message.channel
+
+    msg = await bot.wait_for("message", check=check)
+    with open("blacklist_{}".format(channel_id), "r") as remove_file:
+        lines = remove_file.readlines()
+    if msg.content.lower() not in str(lines):
+        await message.send("This was not in your blacklist. Check out `.black_list`")
+        return
+    elif "\"" in msg.content.lower():
+        await message.send("Make sure not to include this character: \"")
+        return
+    elif "\n" in msg.content.lower():
+        await message.send("Your message mustn't persist of more than one line!")
+        return
+    line = ""
+    remove = False
+    for i in lines:
+        if msg.content.lower() != i[:-1]:
+            line = line + i
+        else:
+            remove = True
+    with open("blacklist_{}".format(channel_id), "w+") as remove_file_write:
+        remove_file_write.write(line)
+        if remove:
+            await message.send("\"{}\" has been successfully removed.".format(msg.content.lower()))
+        else:
+            await message.send(
+                "Action failed. Your input was not being ignored to begin with.")
+
+
 @bot.command(name="list", help="List all active search requirements")
 async def on_message(message):
     channel = message.channel
     channel_id = message.message.channel.id
-    if not os.path.isfile("channel_{}".format(channel_id)):
+    if not os.path.isfile("watch_{}".format(channel_id)):
         await message.send("Action failed. Please run `.activate_channel` to set your notification channel.")
         return
-    with open("channel_{}".format(channel_id), "r") as search:
+    with open("watch_{}".format(channel_id), "r") as search:
         ahaha = []
         for x in search.readlines():
             ahaha.append(x[:-1])
-    await channel.send("Here is the list of words, which are currently being monitored for: {}".format(ahaha))
+    await channel.send("Here is the list of words, which are currently being monitored for: `{}`".format(ahaha))
+
+
+@bot.command(name="black_list", help="List all items on your blacklist")
+async def on_message(message):
+    channel = message.channel
+    channel_id = message.message.channel.id
+    if not os.path.isfile("blacklist_{}".format(channel_id)):
+        await message.send("Action failed. Please run `.activate_channel` to set your notification channel.")
+        return
+    with open("blacklist_{}".format(channel_id), "r") as search:
+        ahaha = []
+        for x in search.readlines():
+            ahaha.append(x[:-1])
+    await channel.send("Here is the list of words, which are currently being ignored: `{}`".format(ahaha))
 
 
 @bot.command(name="activate_channel", help="Active notifications for this channel")
@@ -114,7 +196,8 @@ async def on_message(message):
     channel = message.channel
     channel_id = message.message.channel.id
     try:
-        open("channel_{}".format(channel_id), "x")
+        open("watch_{}".format(channel_id), "x")
+        open("blacklist_{}".format(channel_id), "x")
         await channel.send("This channel has been successfully activated.")
     except:
         await channel.send("This channel has already been activated.")
@@ -125,8 +208,9 @@ async def on_message(message):
     global notif_channel
     channel = message.channel
     channel_id = message.message.channel.id
-    if os.path.isfile("channel_{}".format(channel_id)):
-        os.remove("channel_{}".format(channel_id))
+    if os.path.isfile("watch_{}".format(channel_id)):
+        os.remove("watch_{}".format(channel_id))
+        os.remove("blacklist_{}".format(channel_id))
         await channel.send("This channel has been successfully deactivated.")
     else:
         await channel.send("This channel wasn't activated.")
@@ -141,15 +225,22 @@ async def on_message(message):
 
 @tasks.loop(minutes=1)
 async def checking():
-    id_list = []
-    other_list = []
-    for x in re.findall("channel_[0-9]+", str(os.listdir())):
+    id_watch_list = []
+    watch_list = []
+    id_ignore_list = []
+    ignore_list = []
+    for x in re.findall("watch_[0-9]+", str(os.listdir())):
         with open(x, 'r') as file:
-            x = x.replace("channel_", "")
+            x = x.replace("watch_", "")
             lines = file.readlines()
             for i in lines:
-                id_list.append(x)
-                other_list.append(i[:-1])
+                id_watch_list.append(x)
+                watch_list.append(i[:-1])
+        with open("blacklist_{}".format(x), "r") as blacklist:
+            lines = blacklist.readlines()
+            for i in lines:
+                id_ignore_list.append(x)
+                ignore_list.append(i[:-1])
     timeout = 0
     connection = False
     while not connection:
@@ -171,15 +262,33 @@ async def checking():
             title_list = []
             link_list = []
             id_notif = []
+            # skip_list = []
             for item in entries:
                 item_index = entries.index(item)
+                if entries[item_index]["nyaa_categoryid"] == "1_3":
+                    continue
                 item_title = entries[item_index]["title"]
                 item_link = entries[item_index]["guid"]
-                for x in other_list:
+                for x in watch_list:
+                    blacklist_status = False
                     if re.findall(x, item_title.lower()):
-                        title_list.append(item_title)
-                        link_list.append(item_link)
-                        id_notif.append(id_list[other_list.index(x)])
+                        id_index = 0
+                        for y in id_ignore_list:
+                            # if "{}-{}".format(id_watch_list[watch_list.index(x)], item_title) in skip_list:
+                            #     continue
+                            if y == id_watch_list[watch_list.index(x)]:
+                                if re.findall(ignore_list[id_index], item_title.lower()):
+                                    # skip_list.append("{}-{}".format(id_watch_list[watch_list.index(x)], item_title))
+                                    # print(skip_list)
+                                    blacklist_status = True
+                                    continue
+                                # else:
+                                #     print("{} does not match {}".format(item_title.lower(), ignore_list[id_index]))
+                            id_index = id_index + 1
+                        if not blacklist_status:
+                            title_list.append(item_title)
+                            link_list.append(item_link)
+                            id_notif.append(id_watch_list[watch_list.index(x)])
             if not title_list:
                 print("Nothing found.")
                 return
@@ -191,7 +300,7 @@ async def checking():
             new_links = []
             new_id = []
             for entry in link_list:
-                if entry not in raw_db.lower():
+                if entry not in raw_db.lower() and entry not in new_links:
                     database.seek(0, 2)
                     database.write("{} - {}".format(title_list[link_list.index(entry)], entry))
                     database.write("\n")

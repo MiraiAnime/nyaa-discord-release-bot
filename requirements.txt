@@ -1,2 +1,4 @@
-discord
-feedparser
+discord~=1.7.3
+feedparser~=6.0.8
+DateTime~=4.4
+python-dotenv~=0.20.0
