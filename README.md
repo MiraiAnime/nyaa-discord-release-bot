@@ -7,7 +7,7 @@ written in python
 ---
 
 ### Latest update:
-#### Blacklist support using the following command: `.add_blacklist`/`.remove_blacklist`/`black_list`.
+#### Blacklist support using the following command: `.add_blacklist`/`.remove_blacklist`/`.black_list`.
 
 ###### Now there are two files for each activated channel: `watch_<id>` and `blacklist_<id>`. 
 
