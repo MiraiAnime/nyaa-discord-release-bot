@@ -3,12 +3,21 @@ import discord
 import feedparser
 import time
 import re
+import urllib.parse
+import urllib.request
+import bencode
+import hashlib
+import base64
+from pbwrap import Pastebin
 from datetime import datetime
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
+PASTEBIN_TOKEN = os.getenv("PASTEBIN_TOKEN")
+PASTEBIN_USER = os.getenv("PASTEBIN_USER")
+PASTEBIN_PASSWORD = os.getenv("PASTEBIN_PASSWORD")
 help_command = commands.DefaultHelpCommand(
     no_category="Release-Notifications"
 )
@@ -225,6 +234,26 @@ async def on_message(message):
 
 @tasks.loop(minutes=1)
 async def checking():
+    def torrentfile_to_pastebin(torrent_link):
+        if not os.path.isdir("torrent_files"):
+            os.makedirs("torrent_files")
+        filename = torrent_link.replace("https://nyaa.si/download/", "")
+        urllib.request.urlretrieve(torrent_link, "torrent_files/{}".format(filename))
+        torrent_file = open("./torrent_files/{}".format(filename), 'rb').read()
+        torrent_metadata = bencode.bdecode(torrent_file)
+        hash_content = bencode.bencode(torrent_metadata["info"])
+        digest = hashlib.sha1(hash_content).digest()
+        b32hash = base64.b32encode(digest)
+        params = {'xt': 'urn:btih:%s' % b32hash,
+                  'dn': torrent_metadata['info']['name'],
+                  'tr': torrent_metadata['announce'],
+                  'xl': torrent_metadata['info']['length']}
+        param_str = urllib.parse.urlencode(params)
+        magnet_link = 'magnet:?%s' % param_str
+        magnet_pastebin = pastebin.create_paste(magnet_link, 0, "Nyaa-Torrent {}".format(filename), "N")
+        return magnet_pastebin
+    pastebin = Pastebin(PASTEBIN_TOKEN)
+    pastebin.authenticate(PASTEBIN_USER, PASTEBIN_PASSWORD)
     id_watch_list = []
     watch_list = []
     id_ignore_list = []
@@ -262,6 +291,7 @@ async def checking():
             title_list = []
             link_list = []
             id_notif = []
+            torrent_file_list = []
             # skip_list = []
             for item in entries:
                 item_index = entries.index(item)
@@ -269,6 +299,7 @@ async def checking():
                     continue
                 item_title = entries[item_index]["title"]
                 item_link = entries[item_index]["guid"]
+                item_torrent_file = entries[item_index]["link"]
                 for x in watch_list:
                     blacklist_status = False
                     if re.findall(x, item_title.lower()):
@@ -288,6 +319,7 @@ async def checking():
                         if not blacklist_status:
                             title_list.append(item_title)
                             link_list.append(item_link)
+                            torrent_file_list.append(item_torrent_file)
                             id_notif.append(id_watch_list[watch_list.index(x)])
             if not title_list:
                 print("Nothing found.")
@@ -296,6 +328,7 @@ async def checking():
             database.seek(0)
             raw_db = str(database.read())
             releases = False
+            new_torrent_links = []
             new_titles = []
             new_links = []
             new_id = []
@@ -305,6 +338,7 @@ async def checking():
                     database.write("{} - {}".format(title_list[link_list.index(entry)], entry))
                     database.write("\n")
                     new_titles.append(title_list[link_list.index(entry)])
+                    new_torrent_links.append(torrentfile_to_pastebin(torrent_file_list[link_list.index(entry)]))
                     new_id.append(id_notif[link_list.index(entry)])
                     new_links.append(entry)
                     releases = True
@@ -318,6 +352,7 @@ async def checking():
                     embed.set_footer(text="Watching: {}".format(url))
                     embed.add_field(name=new_titles[index], value=new_links[index]
                                     , inline=False)
+                    embed.add_field(name="Magnet-Link - Pastebin:", value=new_torrent_links[index], inline=False)
                     channel = bot.get_channel(int(what))
                     await channel.send(embed=embed)
                     index = index + 1
