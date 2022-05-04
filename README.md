@@ -8,22 +8,34 @@ written in python
 
 ### Latest update:
 
-#### Archiving and processing whatever the bot picked up:
+Yesterday's update was not compatible with arm32 architecture's (like raspberrypi),
+since the pastebin api I used for some reason wasn't able to just use `requests`.
 
-Since yesterday's Teasing Master-san's BDMV got removed, I decided to make the bot do the following with matches:
+I just replaced those cringe imports with literally only two lines of `requests.post`.
 
-Match -> Downloads torrent-file to disk -> extracts hash and (first) tracker-url -> creates pastebin dumb with magnet-link.
+Small note:
++ the pastebin's include the magnet-url and release title to make it easier finding them through search engines.
 
-... pastebin link will be shown in the embed.
+Bye.
+___
 
-This will however require you to create a pastebin account and/to retrieve your API token.
+### Archiving and processing whatever the bot picked up:
 
-### !! See `.env` documentation below !!
+The bot will now download each torrent file from the releases that matched the regex.
+It appends data like title, checksum and the first tracker concluding in a magnet-url.
+That url will be be posted on pastebin made available to the public, since why the fuck not.
+This should give someone the chance to retrieve data even if the release has been deleted/hidden on nyaa.
+
+This will however require you to create a pastebin account to retrieve your API token.
+
+#### !!! See `.env` documentation below !!!
 
 If you are having problems running, even after installing the new requirements,
 try to install bencode using this command -> `python -m pip install bencode.py` (including the `.py`-extension)
 
 ___
+
+### Blacklists
 
 Blacklist support using the following command: `.add_blacklist`/`.remove_blacklist`/`.black_list`.
 

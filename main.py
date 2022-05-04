@@ -3,12 +3,12 @@ import discord
 import feedparser
 import time
 import re
-import urllib.parse
 import urllib.request
+import urllib.parse
 import bencode
 import hashlib
 import base64
-from pbwrap import Pastebin
+import requests
 from datetime import datetime
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -234,7 +234,7 @@ async def on_message(message):
 
 @tasks.loop(minutes=1)
 async def checking():
-    def torrentfile_to_pastebin(torrent_link):
+    def torrentfile_to_pastebin(torrent_link, torrent_name):
         if not os.path.isdir("torrent_files"):
             os.makedirs("torrent_files")
         filename = torrent_link.replace("https://nyaa.si/download/", "")
@@ -250,10 +250,23 @@ async def checking():
                   'xl': torrent_metadata['info']['length']}
         param_str = urllib.parse.urlencode(params)
         magnet_link = 'magnet:?%s' % param_str
-        magnet_pastebin = pastebin.create_paste(magnet_link, 0, "Nyaa-Torrent {}".format(filename), "N")
+        post_data = {
+            "api_dev_key": PASTEBIN_TOKEN,
+            "api_user_key": api_user_key,
+            "api_option": "paste",
+            "api_paste_private": "0",
+            "api_paste_expire_date": "N",
+            "api_paste_name": "Nyaa-Torrent {}".format(filename),
+            "api_paste_code": "{}\n{}".format(torrent_name, magnet_link)
+        }
+        magnet_pastebin = requests.post("https://pastebin.com/api/api_post.php", post_data).text
         return magnet_pastebin
-    pastebin = Pastebin(PASTEBIN_TOKEN)
-    pastebin.authenticate(PASTEBIN_USER, PASTEBIN_PASSWORD)
+    post_data = {
+        "api_dev_key": PASTEBIN_TOKEN,
+        "api_user_name": PASTEBIN_USER,
+        "api_user_password": PASTEBIN_PASSWORD
+    }
+    api_user_key = requests.post("https://pastebin.com/api/api_login.php", post_data)
     id_watch_list = []
     watch_list = []
     id_ignore_list = []
@@ -338,7 +351,8 @@ async def checking():
                     database.write("{} - {}".format(title_list[link_list.index(entry)], entry))
                     database.write("\n")
                     new_titles.append(title_list[link_list.index(entry)])
-                    new_torrent_links.append(torrentfile_to_pastebin(torrent_file_list[link_list.index(entry)]))
+                    new_torrent_links.append(torrentfile_to_pastebin(torrent_file_list[link_list.index(entry)],
+                                                                     title_list[link_list.index(entry)]))
                     new_id.append(id_notif[link_list.index(entry)])
                     new_links.append(entry)
                     releases = True
