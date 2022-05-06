@@ -1,3 +1,4 @@
+import io
 import os
 import discord
 import feedparser
@@ -50,6 +51,8 @@ async def on_message(message):
 
     msg = await bot.wait_for("message", check=check)
     with open("watch_{}".format(channel_id), "a+") as search:
+        search.seek(0)
+    # print(msg.content.lower(), "\n", search.read())
         if msg.content.lower() in search.read():
             await message.send("This search request is already being indexed. Check out \".list\"")
             return
@@ -60,6 +63,7 @@ async def on_message(message):
             await message.send("Your message mustn't persist of more than one line!")
             return
         user_input = (msg.content.lower()).replace("`", "")
+        search.seek(0, io.SEEK_END)
         search.write("{}\n".format(user_input))
     await message.send("`{}` has been added to the watchlist.".format(user_input))
 
@@ -117,8 +121,9 @@ async def on_message(message):
         return msg.author == message.author and msg.channel == message.channel
 
     msg = await bot.wait_for("message", check=check)
-    with open("blacklist_{}".format(channel_id), "a+") as search:
-        if msg.content.lower() in search.read():
+    with open("blacklist_{}".format(channel_id), "a+") as blacklist:
+        blacklist.seek(0)
+        if msg.content.lower() in blacklist.read():
             await message.send("This is already in your blacklist. Check out \".black_list\"")
             return
         elif "\"" in msg.content.lower():
@@ -127,7 +132,8 @@ async def on_message(message):
         elif "\n" in msg.content.lower():
             await message.send("Your message mustn't persist of more than one line!")
             return
-        search.write("{}\n".format(msg.content.lower()))
+        blacklist.seek(0, io.SEEK_END)
+        blacklist.write("{}\n".format(msg.content.lower()))
     await message.send("\"{}\" has been added to your blacklist.".format(msg.content.lower()))
 
 
@@ -244,10 +250,15 @@ async def checking():
         hash_content = bencode.bencode(torrent_metadata["info"])
         digest = hashlib.sha1(hash_content).digest()
         b32hash = base64.b32encode(digest)
-        params = {'xt': 'urn:btih:%s' % b32hash,
-                  'dn': torrent_metadata['info']['name'],
-                  'tr': torrent_metadata['announce'],
-                  'xl': torrent_metadata['info']['length']}
+        try:
+            params = {'xt': 'urn:btih:%s' % b32hash,
+                      'dn': torrent_metadata['info']['name'],
+                      'tr': torrent_metadata['announce'],
+                      'xl': torrent_metadata['info']['length']}
+        except KeyError:
+            params = {'xt': 'urn:btih:%s' % b32hash,
+                      'dn': torrent_metadata['info']['name'],
+                      'tr': torrent_metadata['announce']}
         param_str = urllib.parse.urlencode(params)
         magnet_link = 'magnet:?%s' % param_str
         post_data = {

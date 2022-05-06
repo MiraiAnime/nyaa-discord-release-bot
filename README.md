@@ -8,15 +8,14 @@ written in python
 
 ### Latest update:
 
-Yesterday's update was not compatible with arm32 architecture's (like raspberrypi),
-since the pastebin api I used for some reason wasn't able to just use `requests`.
+Fixed a pretty annoying bug about the opening mode of watch-lists. ==
+Duplicates are now correctly identified.
 
-I just replaced those cringe imports with literally only two lines of `requests.post`.
+There also seems to be a little problem with some information in torrent files,
+so I just added some lazy two situation functions. Let's see how it goes.
+Tests seem to succeed but this may change.
 
-Small note:
-+ the pastebin's include the magnet-url and release title to make it easier finding them through search engines.
-
-Bye.
+Good bye.
 ___
 
 ### Archiving and processing whatever the bot picked up:
