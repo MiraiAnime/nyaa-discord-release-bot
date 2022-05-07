@@ -8,14 +8,13 @@ written in python
 
 ### Latest update:
 
-Fixed a pretty annoying bug about the opening mode of watch-lists. ==
-Duplicates are now correctly identified.
+Realized, none of the created magnet links work.
 
-There also seems to be a little problem with some information in torrent files,
-so I just added some lazy two situation functions. Let's see how it goes.
-Tests seem to succeed but this may change.
+-> fixed.
 
-Good bye.
+Now each tracker is also appended instead of just the first one.
+
+Bb.
 ___
 
 ### Archiving and processing whatever the bot picked up:

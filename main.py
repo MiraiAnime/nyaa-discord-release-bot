@@ -248,19 +248,21 @@ async def checking():
         torrent_file = open("./torrent_files/{}".format(filename), 'rb').read()
         torrent_metadata = bencode.bdecode(torrent_file)
         hash_content = bencode.bencode(torrent_metadata["info"])
-        digest = hashlib.sha1(hash_content).digest()
-        b32hash = base64.b32encode(digest)
-        try:
-            params = {'xt': 'urn:btih:%s' % b32hash,
-                      'dn': torrent_metadata['info']['name'],
-                      'tr': torrent_metadata['announce'],
-                      'xl': torrent_metadata['info']['length']}
-        except KeyError:
-            params = {'xt': 'urn:btih:%s' % b32hash,
-                      'dn': torrent_metadata['info']['name'],
-                      'tr': torrent_metadata['announce']}
-        param_str = urllib.parse.urlencode(params)
-        magnet_link = 'magnet:?%s' % param_str
+        digest = hashlib.sha1(hash_content).hexdigest()
+        # b32hash = base64.b32encode(digest)
+        key = []
+        value = []
+        key.append("dn")
+        value.append(torrent_metadata['info']['name'])
+        if torrent_metadata['announce-list']:
+            for tracker in torrent_metadata['announce-list']:
+                key.append("tr")
+                value.append(tracker[0])
+        if torrent_metadata["info"]["length"]:
+            key.append("xl")
+            value.append(torrent_metadata['info']['length'])
+        params = list(zip(key, value))
+        magnet_link = "magnet:?xt=urn:btih:{}&{}".format(digest, urllib.parse.urlencode(params))
         post_data = {
             "api_dev_key": PASTEBIN_TOKEN,
             "api_user_key": api_user_key,
