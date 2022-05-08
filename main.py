@@ -258,9 +258,12 @@ async def checking():
             for tracker in torrent_metadata['announce-list']:
                 key.append("tr")
                 value.append(tracker[0])
-        if torrent_metadata["info"]["length"]:
-            key.append("xl")
-            value.append(torrent_metadata['info']['length'])
+        try:
+            if torrent_metadata["info"]["length"]:
+                key.append("xl")
+                value.append(torrent_metadata['info']['length'])
+        except KeyError:
+            print("torrent files suck ass real hard")
         params = list(zip(key, value))
         magnet_link = "magnet:?xt=urn:btih:{}&{}".format(digest, urllib.parse.urlencode(params))
         post_data = {
