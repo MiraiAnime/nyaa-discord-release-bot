@@ -266,23 +266,23 @@ async def checking():
             print("torrent files suck ass real hard")
         params = list(zip(key, value))
         magnet_link = "magnet:?xt=urn:btih:{}&{}".format(digest, urllib.parse.urlencode(params))
-        post_data = {
-            "api_dev_key": PASTEBIN_TOKEN,
-            "api_user_key": api_user_key,
-            "api_option": "paste",
-            "api_paste_private": "0",
-            "api_paste_expire_date": "N",
-            "api_paste_name": "Nyaa-Torrent {}".format(filename),
-            "api_paste_code": "{}\n{}".format(torrent_name, magnet_link)
-        }
-        magnet_pastebin = requests.post("https://pastebin.com/api/api_post.php", post_data).text
-        return magnet_pastebin
-    post_data = {
-        "api_dev_key": PASTEBIN_TOKEN,
-        "api_user_name": PASTEBIN_USER,
-        "api_user_password": PASTEBIN_PASSWORD
-    }
-    api_user_key = requests.post("https://pastebin.com/api/api_login.php", post_data)
+        # post_data = {
+        #     "api_dev_key": PASTEBIN_TOKEN,
+        #     "api_user_key": api_user_key,
+        #     "api_option": "paste",
+        #     "api_paste_private": "0",
+        #     "api_paste_expire_date": "N",
+        #     "api_paste_name": "Nyaa-Torrent {}".format(filename),
+        #     "api_paste_code": "{}\n{}".format(torrent_name, magnet_link)
+        # }
+        # magnet_pastebin = requests.post("https://pastebin.com/api/api_post.php", post_data).text
+        return magnet_link
+    # post_data = {
+    #     "api_dev_key": PASTEBIN_TOKEN,
+    #     "api_user_name": PASTEBIN_USER,
+    #     "api_user_password": PASTEBIN_PASSWORD
+    # }
+    # api_user_key = requests.post("https://pastebin.com/api/api_login.php", post_data)
     id_watch_list = []
     watch_list = []
     id_ignore_list = []
@@ -378,11 +378,17 @@ async def checking():
                 for what in new_id:
                     embed = discord.Embed()
                     embed.title = "Nyaa-Release-Notification"
+                    embed.title = new_titles[index]
                     embed.set_thumbnail(url="https://i.imgur.com/3RS9unL.png")
                     embed.set_footer(text="Watching: {}".format(url))
-                    embed.add_field(name=new_titles[index], value=new_links[index]
-                                    , inline=False)
-                    embed.add_field(name="Magnet-Link - Pastebin:", value=new_torrent_links[index], inline=False)
+                    # embed.description = "[Nyaa]({}) | [Magnet-URL]({})".format(new_links[index],
+                    #                                                            new_torrent_links[index])
+
+                    embed.add_field(name=new_titles[index], value=new_links[index],
+                                    inline=False)
+                    #embed.add_field(name="Magnet-Link:", value="{}".format(new_torrent_links[index]),
+                    #                inline=False)
+                    #embed.add_filed(name="Size", value="{}".)
                     channel = bot.get_channel(int(what))
                     await channel.send(embed=embed)
                     index = index + 1
